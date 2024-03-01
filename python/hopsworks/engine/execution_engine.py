@@ -98,13 +98,18 @@ class ExecutionEngine:
         :rtype: str, str
         """
 
+        print('beginning')
+
         is_yarn_job = (
             job.job_type.lower() == "spark"
             or job.job_type.lower() == "pyspark"
             or job.job_type.lower() == "flink"
         )
 
+        print('1')
+
         updated_execution = self._execution_api._get(job, execution.id)
+        print('2')
         execution_state = None
         while updated_execution.success is None:
             updated_execution = self._execution_api._get(job, execution.id)
@@ -123,12 +128,14 @@ class ExecutionEngine:
                     )
             execution_state = updated_execution.state
             time.sleep(3)
+            print('first loop')
 
         # wait for log files to be aggregated, max 6 minutes
         await_time = 120
         log_aggregation_files_exist = False
         self._log.info("Waiting for log aggregation to finish.")
         while not log_aggregation_files_exist and await_time >= 0:
+            print('second loop')
             updated_execution = self._execution_api._get(job, execution.id)
 
             log_aggregation_files_exist = self._dataset_api.exists(
@@ -154,5 +161,7 @@ class ExecutionEngine:
             )
         else:
             self._log.info("Execution finished successfully.")
+
+        print('done')
 
         return updated_execution
